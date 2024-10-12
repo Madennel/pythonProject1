@@ -32,7 +32,6 @@ class Pegasus(Horse, Eagle):
         print(self.sound)
 
 
-# Пример работы программы
 if __name__ == "__main__":
     p1 = Pegasus()
 
