@@ -1,48 +1,29 @@
-import string
-
-
 class WordsFinder:
-    def __init__(self, *file_names):
-        self.file_names = file_names
+    def __init__(self, *args):
+        self.file_names = args
 
     def get_all_words(self):
         all_words = {}
 
         for file_name in self.file_names:
-            with open(file_name, 'r', encoding='utf-8') as file:
-                content = file.read().lower()
-                translator = str.maketrans('', '', string.punctuation + ' -')
-                clean_content = content.translate(translator)
-                words = clean_content.split()
-                all_words[file_name] = words
+            with open(file_name, 'r', encoding='utf-8') as f:
+                all_words[file_name] = [word.lower().strip('.,=-!?;:') for word in f.read().split()]
 
         return all_words
 
     def find(self, word):
-        word = word.lower()
-        results = {}
-        all_words = self.get_all_words()
+        found = {}
 
-        for file_name, words in all_words.items():
-            if word in words:
-                position = words.index(word) + 1
-                results[file_name] = position
+        for name, words in self.get_all_words().items():
+            if word.lower() in words:
+                found[name] = words.index(word.lower()) + 1
 
-        return results
+        return found
 
     def count(self, word):
-        word = word.lower()
-        results = {}
-        all_words = self.get_all_words()
+        counted = {}
 
-        for file_name, words in all_words.items():
-            count = words.count(word)
-            results[file_name] = count
+        for name, words in self.get_all_words().items():
+            counted[name] = words.count(word.lower())
 
-        return results
-
-
-finder = WordsFinder('test_file.txt')
-print(finder.get_all_words())
-print(finder.find('TEXT'))
-print(finder.count('teXT'))
+        return counted
