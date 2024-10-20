@@ -1,51 +1,96 @@
-class MessageCollection:
-    def __init__(self):
-        self.messages = []
+import time
+import hashlib
 
-    def add_message(self, message):
-        self.messages.append(message)
+class User:
+    def __init__(self, nickname, password, age):
+        self.nickname = nickname
+        self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.age = age
 
     def __str__(self):
-        return str(self.messages)
+        return f"Пользователь: {self.nickname}, возраст: {self.age}"
 
-    def __repr__(self):
-        return f"MessageCollection({self.messages})"
+class Video:
+    def __init__(self, title, duration, adult_mode=False):
+        self.title = title
+        self.duration = duration
+        self.time_now = 0
+        self.adult_mode = adult_mode
 
-    def __contains__(self, message):
-        return message in self.messages
+    def __str__(self):
+        return f"Видео: {self.title}, длительность: {self.duration} секунд"
+
+class UrTube:
+    def __init__(self):
+        self.users = []
+        self.videos = []
+        self.current_user = None
+
+    def __contains__(self, video):
+        return video in self.videos
 
     def __eq__(self, other):
-        if isinstance(other, MessageCollection):
-            return self.messages == other.messages
-        return False
+        return self.users == other.users and self.videos == other.videos and self.current_user == other.current_user
 
-    def __len__(self):
-        return len(self.messages)
+    def log_in(self, nickname, password):
+        for user in self.users:
+            if user.nickname == nickname and user.password == hashlib.sha256(password.encode()).hexdigest():
+                self.current_user = user
+                break
 
-# Пример использования класса
-collection = MessageCollection()
+    def register(self, nickname, password, age):
+        for user in self.users:
+            if user.nickname == nickname:
+                print(f"Пользователь {nickname} уже существует")
+                return
+        new_user = User(nickname, password, age)
+        self.users.append(new_user)
+        self.log_in(nickname, password)
 
-# Добавление сообщений
-collection.add_message('Лучший язык программирования 2024 года')
-print(collection)  # ['Лучший язык программирования 2024 года']
+    def log_out(self):
+        self.current_user = None
 
-collection.add_message('Для чего девушкам парень программист?')
-print(collection)  # ['Лучший язык программирования 2024 года', 'Для чего девушкам парень программист?']
+    def add(self, *videos):
+        for video in videos:
+            if video not in self:
+                self.videos.append(video)
 
-# Проверка наличия сообщения
-print('Лучший язык программирования 2024 года' in collection)  # True
-print('Не существующее сообщение' in collection)  # False
+    def get_videos(self, search_term):
+        result = []
+        for video in self.videos:
+            if search_term.lower() in video.title.lower():
+                result.append(video.title)
+        return result
 
-# Проверка длины коллекции
-print(len(collection))  # 2
+    def watch_video(self, title):
+        if self.current_user is None:
+            print("Войдите в аккаунт, чтобы смотреть видео")
+            return
+        for video in self.videos:
+            if video.title == title:
+                if video.adult_mode and self.current_user.age < 18:
+                    print("Вам нет 18 лет, пожалуйста покиньте страницу")
+                    return
+                while video.time_now < video.duration:
+                    time.sleep(1)
+                    video.time_now += 1
+                    print(video.time_now)
+                print("Конец видео")
+                video.time_now = 0
+                return
+        print("Видео не найдено")
 
-# Создание другой коллекции для сравнения
-another_collection = MessageCollection()
-another_collection.add_message('Лучший язык программирования 2024 года')
-another_collection.add_message('Для чего девушкам парень программист?')
 
-# Сравнение коллекций
-print(collection == another_collection)  # True
-
-# Вывод представления коллекции
-print(repr(collection))  # MessageCollection(['Лучший язык программирования 2024 года', 'Для чего девушкам парень программист?'])
+if __name__ == "__main__":
+    urtube = UrTube()
+    urtube.register("user1", "password1", 20)
+    urtube.register("user2", "password2", 16)
+    urtube.log_in("user1", "password1")
+    urtube.add(
+        Video("Лучший язык программирования 2024 года", 36),
+        Video("Для чего девушкам парень программист?", 42, True),
+        Video("C++ tutorial", 30),
+    )
+    print(urtube.get_videos("язык"))
+    urtube.watch_video("Лучший язык программирования 2024 года")
+    urtube.watch_video("Для чего девушкам парень программист?")
