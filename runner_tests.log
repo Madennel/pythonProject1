@@ -1,0 +1,5 @@
+INFO: "test_distance_after_run" выполнен успешно
+INFO: "test_distance_after_walk" выполнен успешно
+WARNING: Неверный тип данных для объекта Runner
+WARNING: Неверная скорость для Runner
+INFO: "test_tournament" выполнен успешно
