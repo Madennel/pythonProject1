@@ -1,4 +1,5 @@
 import unittest
+from module_12_1 import Runner
 
 class Tournament:
     def __init__(self, distance, *participants):
