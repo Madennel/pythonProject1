@@ -1,6 +1,5 @@
 import unittest
 
-# Предположим, что классы Runner и Tournament находятся в файле runner_and_tournament.py
 from runner_and_tournament import Runner, Tournament
 
 class TournamentTest(unittest.TestCase):
