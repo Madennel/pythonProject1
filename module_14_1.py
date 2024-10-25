@@ -1,10 +1,10 @@
 import sqlite3
 
-# Подключение к базе данных
+# Подключаемся к базе данных (создается файл not_telegram.db, если его нет)
 conn = sqlite3.connect('not_telegram.db')
 cursor = conn.cursor()
 
-# Создание таблицы Users, если она еще не существует
+# Создаем таблицу Users, если она еще не создана
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS Users (
     id INTEGER PRIMARY KEY,
@@ -15,8 +15,12 @@ CREATE TABLE IF NOT EXISTS Users (
 )
 ''')
 
-# Заполнение таблицы данными
-users_data = [
+# Очищаем таблицу перед добавлением новых записей (чтобы не было дублирования)
+cursor.execute('DELETE FROM Users')
+conn.commit()
+
+# Заполняем таблицу 10 записями
+users = [
     ('User1', 'example1@gmail.com', 10, 1000),
     ('User2', 'example2@gmail.com', 20, 1000),
     ('User3', 'example3@gmail.com', 30, 1000),
@@ -28,34 +32,38 @@ users_data = [
     ('User9', 'example9@gmail.com', 90, 1000),
     ('User10', 'example10@gmail.com', 100, 1000)
 ]
-
 cursor.executemany('''
-INSERT INTO Users (username, email, age, balance) VALUES (?, ?, ?, ?)
-''', users_data)
-
-# Обновление баланса каждые две строки начиная с первой
-for i in range(1, len(users_data), 2):
-    cursor.execute('''
-    UPDATE Users SET balance = 500 WHERE id = ?
-    ''', (i,))
-
-# Удаление каждой третьей записи начиная с первой
-for i in range(1, len(users_data), 3):
-    cursor.execute('''
-    DELETE FROM Users WHERE id = ?
-    ''', (i,))
-
-# Выборка всех записей, кроме тех, у кого возраст 60
-cursor.execute('''
-SELECT username, email, age, balance FROM Users WHERE age != 60
-''')
-rows = cursor.fetchall()
-
-# Вывод результатов в консоль
-print("Вывод на консоль:")
-for row in rows:
-    print(f'Имя: {row[0]} | Почта: {row[1]} | Возраст: {row[2]} | Баланс: {row[3]}')
-
-# Сохраняем изменения и закрываем соединение
+INSERT INTO Users (username, email, age, balance)
+VALUES (?, ?, ?, ?)
+''', users)
 conn.commit()
+
+# Обновляем balance для каждой записи с нечетным порядковым номером
+cursor.execute('''
+UPDATE Users
+SET balance = 500
+WHERE (id - 1) % 2 = 0
+''')
+conn.commit()
+
+# Удаляем каждую третью запись, начиная с первой
+cursor.execute('''
+DELETE FROM Users
+WHERE (id - 1) % 3 = 0
+''')
+conn.commit()
+
+# Выбираем записи, где возраст не равен 60
+cursor.execute('''
+SELECT username, email, age, balance
+FROM Users
+WHERE age != 60
+''')
+records = cursor.fetchall()
+
+# Выводим записи в заданном формате
+for record in records:
+    print(f"Имя: {record[0]} | Почта: {record[1]} | Возраст: {record[2]} | Баланс: {record[3]}")
+
+# Закрываем подключение
 conn.close()
